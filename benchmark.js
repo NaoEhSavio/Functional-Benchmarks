@@ -9,7 +9,18 @@ var run = [
   "agda",
   "idris",
   "coq",
+  "lean",
 ];
+
+let allowed_tests = {
+  list_fold: true,
+  nat_exp: true,
+  nat_exp_church: true,
+  tree_fold_church: true,
+  vector: true,
+  quicksort: true,
+  composition: true,
+}
 
 var langs = {
 
@@ -18,6 +29,8 @@ var langs = {
       tasks: {
         list_fold: [1,64],
         tree_fold: [26,32],
+        quicksort: [0, 15],
+        composition: [10, 32],
       },
       build: (task) => {
         save("main.hs", load("Runtime/"+task+".hs"));
@@ -40,6 +53,8 @@ var langs = {
       tasks: {
         list_fold: [1,64],
         tree_fold: [26,32],
+        quicksort: [0, 15],
+        composition: [10, 32],
       },
       build: (task) => {
         save("main.kind2", load("Runtime/"+task+".kind2"));
@@ -63,6 +78,7 @@ var langs = {
         nat_exp_church: [16,24],
         tree_fold: [16,24],
         tree_fold_church: [16,24],
+        vector: [1, 4],
       },
       build: (task) => {
         save("Base.kind2", load("Checker/Base.kind2"));
@@ -91,6 +107,7 @@ var langs = {
         nat_exp_church: [16,24],
         tree_fold: [16,24],
         tree_fold_church: [16,24],
+        vector: [1,4],
       },
       build: (task) => {
         save("Base.agda", load("Checker/Base.agda"));
@@ -119,6 +136,7 @@ var langs = {
         nat_exp_church: [16,21],
         tree_fold: [16,24],
         tree_fold_church: [16,21],
+        vector: [1, 4],
       },
       build: (task) => {
         save("Base.idr", load("Checker/Base.idr"));
@@ -143,6 +161,7 @@ var langs = {
         nat_exp_church: [16,24],
         tree_fold: [16,24],
         tree_fold_church: [16,24],
+        vector: [1, 4],
       },
       build: (task) => {
         save("Base.v", load("Checker/Base.v"));
@@ -151,7 +170,7 @@ var langs = {
         var code = load("Checker/"+task+".v");
         code = code.replace("Definition Size : Base.Nat := Base.N1 .", "Definition Size : Base.Nat := Base.N" + size + " .");
         code = code.replace("Definition Size : Base.Church_Nat := Base.Church_N1 .", "Definition Size : Base.Church_Nat := Base.Church_N" + size + " .");
-        code = repeat(code, "--REPEAT", 2 ** size);
+        code = repeat(code, "(* REPEAT *)", 2 ** size);
         save("main.v", code);
         return bench("coqc main.v");
       },
@@ -160,6 +179,31 @@ var langs = {
     }
   },
 
+  lean: {
+    checker: {
+      tasks: {
+        nat_exp: [10,14],
+        nat_exp_church: [16,24],
+        tree_fold: [16,24],
+        tree_fold_church: [16,24],
+        vector: [1, 4],
+      },
+      build: (task) => {
+      },
+      bench: (task, size) => {
+        var code = load("Checker/"+task+".lean");
+        var base = load("Checker/Base.lean");
+        code = code.replace("Size : Base.Nat := Base.N1", "Size : Base.Nat := Base.N" + size);
+        code = code.replace("Size : Base.Church.Nat := Base.Church.N1", "Size : Base.Church.Nat := Base.Church.N" + size);
+        code = repeat(code, "--REPEAT", 2 ** size);
+        code = base + "\n---\n" + code;
+        save("main.lean", code);
+        return bench("lean main.lean");
+      },
+      clean: () => {
+      },
+    }
+  },
 };
 
 for (var name in langs) {
@@ -173,6 +217,8 @@ var results = [];
 for (var lang of run) {
   for (var kind in langs[lang]) {
     for (var task in langs[lang][kind].tasks) {
+      if(!allowed_tests[task]) continue;
+
       langs[lang][kind].clean(task);
       langs[lang][kind].build(task);
       var min_size = langs[lang][kind].tasks[task][0];
@@ -198,7 +244,7 @@ function exec(str) {
   } catch (e) {
     console.log(e.stdout.toString());
     console.log(e.stderr.toString());
-    process.exit();
+    return Infinity;
   }
 }
 
@@ -230,7 +276,8 @@ function repeat(code, label, size) {
 function bench(cmd) {
   var ini = Date.now();
   var res = exec(cmd, {skipThrow: 1}).toString().replace(/\n/g,"");
-  //console.log(">> done: " + res);
+  //console.log(">> done: " + res.substring(0, 100));
+  if (res == Infinity) { return Infinity }
   var end = Date.now();
   return (end - ini) / 1000;
 }

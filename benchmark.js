@@ -60,10 +60,10 @@ var langs = {
         save("main.kind2", load("Runtime/"+task+".kind2"));
         exec("kind2 to-hvm main.kind2 >> main.hvm");
         exec("hvm compile main.hvm");
-        exec("clang -O2 main.c -o main.bin");
+        exec("cd main; cargo build --release");
       },
       bench: (task, size) => {
-        return bench("./main.bin " + size + " 2>/dev/null");
+        return bench("./main/target/release/main run \"(Main " + size + ")\" 2>/dev/null");
       },
       clean: () => {
         rm("main.kind2");
@@ -89,8 +89,8 @@ var langs = {
         code = code.replace("Size = Base.Church.N1", "Size = Base.Church.N" + size);
         code = repeat(code, "//REPEAT", 2 ** size);
         save("main.kind2", code);
-        exec("kind2 gen-checker main.kind2");
-        return bench("hvm --memory-size 12G run main.check.hvm 2>/dev/null");
+        exec("kind2 gen-checker main.kind2 >> main.check.hvm 2>/dev/null");
+        return bench("hvm run --size 1610612736 --file main.check.hvm 2>/dev/null");
       },
       clean: (task) => {
         rm("Base.kind2");

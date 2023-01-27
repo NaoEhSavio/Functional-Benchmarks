@@ -2,10 +2,10 @@ List (t: Type) : Type
   Cons <t: Type> (head: t) (tail: List t) : List t
   Nil <t: Type> : List t
   
-// Folds over a list
-Fold <t: Type> (list: List t) <p: Type> (cons: t -> p -> p) (nil: p) : p
-Fold t (Nil u)       p c n = n
-Fold t (Cons u x xs) p c n = c x (Fold xs c n)
+// Sums a list
+Sum <t: Type> (list: List U60) : U60
+Sum Nil         = 0
+Sum (Cons x xs) = (+ x (Sum xs))
 
 // A list from 0 to 0
 Range (n: U60) (list: List U60) : List U60
@@ -14,9 +14,9 @@ Range n xs =
   let m = (- n 1)
   Range m (Cons m xs)
 
-// Sums a big list with fold
+// Sums a big list with sum
 Main (n: U60) {
-  let size = (* 1000000 n)
+  let size = (* n 1000000)
   let list = Range size Nil
-  Fold list (a => b => (+ a b)) 0
+  Sum list
 }

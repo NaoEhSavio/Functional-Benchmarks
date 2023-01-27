@@ -6,9 +6,9 @@ inductive List (α : Type u) where
 
 namespace List
 
-def foldr (f : α → β → β) (init : β) : List α → β
-  | .nil => init
-  | .cons a l => f a (foldr f init l)
+def sum : List UInt64 → UInt64
+  | .nil      => 0
+  | .cons a l => a + sum l
 
 -- Partial is just so I don't have to do a recursion proof, it actually inhibits opts
 -- in certain special cases
@@ -26,4 +26,4 @@ def main (xs : List String) : IO Unit := do
   let n := UInt64.ofNat $ String.toNat! xs.head!
   let size := 1000000 * n
   let list := Example.List.range size .nil
-  IO.print $ list.foldr (· + ·) 0
+  IO.print $ list.sum

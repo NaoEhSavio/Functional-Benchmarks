@@ -13,14 +13,22 @@ var run = [
 ];
 
 let allowed_tests = {
-  list_fold: true,
+  list_sum: true,
   nat_exp: true,
   nat_exp_church: true,
   tree_fold_church: true,
   vector: true,
   quicksort: true,
   composition: true,
+  tree_sum: true,
   tree_fold: true,
+}
+
+let parallel = {
+  list_sum: false,
+  quicksort: true,
+  tree_sum: true,
+  composition: false,
 }
 
 var langs = {
@@ -28,8 +36,8 @@ var langs = {
   haskell: {
     runtime: {
       tasks: {
-        list_fold: [1,64],
-        tree_fold: [26,32],
+        list_sum: [1,64],
+        tree_sum: [26,32],
         quicksort: [0, 15],
         composition: [10, 32],
       },
@@ -52,8 +60,8 @@ var langs = {
   kind2: {
     runtime: {
       tasks: {
-        list_fold: [1,64],
-        tree_fold: [26,32],
+        list_sum: [1,64],
+        tree_sum: [26,32],
         quicksort: [0, 15],
         composition: [10, 32],
       },
@@ -64,7 +72,7 @@ var langs = {
         exec("cd main; cargo build --release");
       },
       bench: (task, size) => {
-        return bench("./main/target/release/main run \"(Main " + size + ")\" 2>/dev/null");
+        return bench("./main/target/release/main run" + (!parallel[task] ? " -t 1" : "") + " \"(Main " + size + ")\" 2>/dev/null");
       },
       clean: () => {
         rm("main.kind2");
@@ -166,6 +174,7 @@ var langs = {
       },
       build: (task) => {
         save("Base.v", load("Checker/Base.v"));
+        exec("coqc Base.v");
       },
       bench: (task, size) => {
         var code = load("Checker/"+task+".v");
@@ -183,13 +192,13 @@ var langs = {
   lean: {
     checker: {
       tasks: {
-        nat_exp: [10,14],
+        //nat_exp: [10,14],
         // Lean has not optimized kernel computation so this goes exponential quick
-        nat_exp_church: [16,18],
-        tree_fold: [16,24],
+        //nat_exp_church: [16,18],
+        //tree_fold: [16,24],
         // Lean has not optimized kernel computation so this goes exponential quick
-        tree_fold_church: [16,18],
-        vector: [1, 4],
+        //tree_fold_church: [16,18],
+        //vector: [1, 4],
       },
       build: (task) => {
       },
@@ -208,10 +217,10 @@ var langs = {
     },
     runtime: {
       tasks: {
-        list_fold: [1,64],
-        tree_fold: [26,32],
-        quicksort: [0, 15],
-        composition: [10, 32],
+        list_sum: [1,64],
+        //tree_sum: [26,32],
+        //quicksort: [0, 15],
+        //composition: [10, 32],
       },
       build: (task) => {
         save("main.lean", load("Runtime/"+task+".lean"));

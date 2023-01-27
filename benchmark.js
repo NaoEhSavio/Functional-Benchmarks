@@ -20,6 +20,7 @@ let allowed_tests = {
   vector: true,
   quicksort: true,
   composition: true,
+  tree_fold: true,
 }
 
 var langs = {
@@ -183,9 +184,11 @@ var langs = {
     checker: {
       tasks: {
         nat_exp: [10,14],
-        nat_exp_church: [16,24],
+        // Lean has not optimized kernel computation so this goes exponential quick
+        nat_exp_church: [16,18],
         tree_fold: [16,24],
-        tree_fold_church: [16,24],
+        // Lean has not optimized kernel computation so this goes exponential quick
+        tree_fold_church: [16,18],
         vector: [1, 4],
       },
       build: (task) => {
@@ -202,7 +205,28 @@ var langs = {
       },
       clean: () => {
       },
-    }
+    },
+    runtime: {
+      tasks: {
+        list_fold: [1,64],
+        tree_fold: [26,32],
+        quicksort: [0, 15],
+        composition: [10, 32],
+      },
+      build: (task) => {
+        save("main.lean", load("Runtime/"+task+".lean"));
+        exec("lean main.lean -c main.c");
+        exec("leanc -o main.bin -O3 -DNDEBUG main.c");
+      },
+      bench: (task, size) => {
+        return bench("./main.bin " + size);
+      },
+      clean: () => {
+        rm("main.lean");
+        rm("main.c");
+        rm("main.bin");
+      },
+    },
   },
 };
 

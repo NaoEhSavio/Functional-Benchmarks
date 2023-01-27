@@ -4,9 +4,6 @@
 -- Equality
 -- -------
 
-inductive Base.Equal : {t: Type u} -> (a: t) -> (b :t) -> Type u where
-  | refl : Equal a a
-
 inductive Base.Bool where
   | tt : Bool
   | ff : Bool

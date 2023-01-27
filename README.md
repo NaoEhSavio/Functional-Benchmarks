@@ -205,7 +205,8 @@ Replicating
 To replicate these benchmarks, just run:
 
 ```
-node run benchmark.js
+ulimit -s unlimited # give unlimited stack space
+node benchmark.js
 ```
 
 For specific commands, check the contents of [benchmark.js](benchmark.js).
